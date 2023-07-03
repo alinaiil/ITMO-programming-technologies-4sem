@@ -4,6 +4,7 @@ plugins {
 }
 
 apply(plugin = "io.spring.dependency-management")
+
 group = "kz.alinaiil"
 version = "1.0-SNAPSHOT"
 
@@ -20,6 +21,8 @@ dependencies {
     api("org.springframework.boot:spring-boot-starter:3.0.4")
     api("org.springframework.boot:spring-boot-starter-data-jpa:3.0.5")
     api("org.springframework.boot:spring-boot-starter-validation:3.0.5")
+    api("org.springframework.boot:spring-boot-starter-security:3.0.5")
+    api("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0")
 }
 
 tasks.getByName<Test>("test") {

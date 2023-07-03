@@ -4,13 +4,13 @@ import kz.alinaiil.kotiki.data.models.Kitty;
 import kz.alinaiil.kotiki.data.models.Owner;
 import kz.alinaiil.kotiki.data.repositories.KittyRepository;
 import kz.alinaiil.kotiki.data.repositories.OwnerRepository;
+import kz.alinaiil.kotiki.data.repositories.UserRepository;
 import kz.alinaiil.kotiki.service.dto.KittyDto;
 import kz.alinaiil.kotiki.service.dto.OwnerDto;
 import kz.alinaiil.kotiki.service.services.KittyServiceImpl;
 import kz.alinaiil.kotiki.service.services.OwnerServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -28,6 +28,8 @@ public class KittyServiceTest {
     private KittyRepository kittyRepository;
     @MockBean
     private OwnerRepository ownerRepository;
+    @MockBean
+    private UserRepository userRepository;
 
     @Test
     void findAll_findsAll() {
@@ -37,7 +39,7 @@ public class KittyServiceTest {
         Owner owner2 = new Owner("Dina", LocalDate.of(1994, 7, 24), new ArrayList<>());
         owners.add(owner1);
         owners.add(owner2);
-        OwnerServiceImpl ownerService = new OwnerServiceImpl(ownerRepository);
+        OwnerServiceImpl ownerService = new OwnerServiceImpl(ownerRepository, userRepository);
         Mockito.when(ownerRepository.save(Mockito.any(Owner.class))).thenReturn(null);
         ownersDto.add(ownerService.createOwner("Alina", LocalDate.of(2003, 4, 16)));
         ownersDto.add(ownerService.createOwner("Dina", LocalDate.of(1994, 7, 24)));
@@ -48,7 +50,7 @@ public class KittyServiceTest {
     @Test
     void findGingerKitties_gingerKittiesAreFound() {
         List<Kitty> kitties = new ArrayList<>();
-        KittyServiceImpl kittyService = new KittyServiceImpl(kittyRepository, ownerRepository);
+        KittyServiceImpl kittyService = new KittyServiceImpl(kittyRepository, ownerRepository, userRepository);
         Owner owner1 = new Owner("Alina", LocalDate.of(2003, 4, 16), new ArrayList<>());
         Kitty kitty1 = new Kitty("Ryzhik", LocalDate.of(1999, 8, 21), Breed.Unknown, Colour.Ginger, owner1, new ArrayList<>());
         Kitty kitty2 = new Kitty("NeRyzhik", LocalDate.of(2002, 8, 21), Breed.Unknown, Colour.White, owner1, new ArrayList<>());
@@ -70,7 +72,7 @@ public class KittyServiceTest {
     @Test
     void findPersianKitties_gingerKittiesAreFound() {
         List<Kitty> kitties = new ArrayList<>();
-        KittyServiceImpl kittyService = new KittyServiceImpl(kittyRepository, ownerRepository);
+        KittyServiceImpl kittyService = new KittyServiceImpl(kittyRepository, ownerRepository, userRepository);
         Owner owner1 = new Owner("Alina", LocalDate.of(2003, 4, 16), new ArrayList<>());
         Kitty kitty1 = new Kitty("Ryzhik", LocalDate.of(1999, 8, 21), Breed.Unknown, Colour.Ginger, owner1, new ArrayList<>());
         Kitty kitty2 = new Kitty("NeRyzhik", LocalDate.of(2002, 8, 21), Breed.Persian, Colour.White, owner1, new ArrayList<>());

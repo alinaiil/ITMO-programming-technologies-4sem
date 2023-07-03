@@ -52,4 +52,17 @@ public class Owner {
                 ", birthDate=" + birthDate +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Owner owner = (Owner) o;
+        return id == owner.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, birthDate, kitties);
+    }
 }

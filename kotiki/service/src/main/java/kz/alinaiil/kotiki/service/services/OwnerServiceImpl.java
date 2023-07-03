@@ -2,8 +2,8 @@ package kz.alinaiil.kotiki.service.services;
 
 import kz.alinaiil.kotiki.data.models.Kitty;
 import kz.alinaiil.kotiki.data.models.Owner;
-import kz.alinaiil.kotiki.data.repositories.KittyRepository;
 import kz.alinaiil.kotiki.data.repositories.OwnerRepository;
+import kz.alinaiil.kotiki.data.repositories.UserRepository;
 import kz.alinaiil.kotiki.service.dto.KittyDto;
 import kz.alinaiil.kotiki.service.dto.OwnerDto;
 import kz.alinaiil.kotiki.service.exceptions.OwnerServiceException;
@@ -21,10 +21,12 @@ import java.util.List;
 @ExtensionMethod({OwnerMapper.class, KittyMapper.class})
 public class OwnerServiceImpl implements OwnerService {
     private final OwnerRepository ownerRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public OwnerServiceImpl(OwnerRepository ownerRepository) {
+    public OwnerServiceImpl(OwnerRepository ownerRepository, UserRepository userRepository) {
         this.ownerRepository = ownerRepository;
+        this.userRepository = userRepository;
     }
 
     public OwnerDto createOwner(String name, LocalDate birthDate) {
@@ -64,6 +66,7 @@ public class OwnerServiceImpl implements OwnerService {
         if (!ownerRepository.existsById(id)) {
             throw OwnerServiceException.noSuchOwner(id);
         }
+        userRepository.deleteById(userRepository.findUserByOwner(ownerRepository.findById(id).orElseThrow()).orElseThrow().getId());
         ownerRepository.deleteById(id);
     }
 }
