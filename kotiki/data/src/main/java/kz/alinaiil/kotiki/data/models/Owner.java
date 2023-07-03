@@ -16,10 +16,13 @@ public class Owner {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     @Column(name = "name")
     private String name;
+
     @Column(name = "birthDate")
     private LocalDate birthDate;
+
     @OneToMany(mappedBy = "owner", orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Kitty> kitties;
 

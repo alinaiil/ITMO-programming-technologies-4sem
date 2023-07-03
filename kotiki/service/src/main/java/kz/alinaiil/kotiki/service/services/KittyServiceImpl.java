@@ -1,32 +1,36 @@
 package kz.alinaiil.kotiki.service.services;
 
-import kz.alinaiil.kotiki.data.dao.KittyDao;
-import kz.alinaiil.kotiki.data.dao.OwnerDao;
 import kz.alinaiil.kotiki.data.models.Breed;
 import kz.alinaiil.kotiki.data.models.Colour;
 import kz.alinaiil.kotiki.data.models.Kitty;
+import kz.alinaiil.kotiki.data.repositories.KittyRepository;
+import kz.alinaiil.kotiki.data.repositories.OwnerRepository;
 import kz.alinaiil.kotiki.service.dto.KittyDto;
 import kz.alinaiil.kotiki.service.exceptions.KittyServiceException;
 import kz.alinaiil.kotiki.service.mappers.KittyMapper;
 import lombok.experimental.ExtensionMethod;
-import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+@Service
 @ExtensionMethod(KittyMapper.class)
 public class KittyServiceImpl implements KittyService {
-    private final KittyDao kittyDao;
-    private final OwnerDao ownerDao;
+    private final KittyRepository kittyRepository;
+    private final OwnerRepository ownerRepository;
 
-    public KittyServiceImpl(KittyDao kittyDao, OwnerDao ownerDao) {
-        this.ownerDao = ownerDao;
-        this.kittyDao = kittyDao;
+    @Autowired
+    public KittyServiceImpl(KittyRepository kittyRepository, OwnerRepository ownerRepository) {
+        this.kittyRepository = kittyRepository;
+        this.ownerRepository = ownerRepository;
     }
 
     public KittyDto createKitty(String name, LocalDate birthDate, String breedName, String colourName, int ownerId) {
-        if (ownerDao.getById(ownerId) == null) {
+        if (!ownerRepository.existsById(ownerId)) {
             throw KittyServiceException.noSuchOwner(ownerId);
         }
         Breed breed = Breed.Unknown;
@@ -44,82 +48,90 @@ public class KittyServiceImpl implements KittyService {
         if (colour == null) {
             throw KittyServiceException.noSuchColour(colourName);
         }
-        Kitty kitty = new Kitty(name, birthDate, breed, colour, ownerDao.getById(ownerId), new ArrayList<>());
-        ownerDao.getById(ownerId).addKitty(kitty);
-        kittyDao.add(kitty);
+        Kitty kitty = new Kitty(name, birthDate, breed, colour, ownerRepository.findById(ownerId).orElseThrow(), new ArrayList<>());
+        ownerRepository.findById(ownerId).ifPresent(owner -> owner.addKitty(kitty));
+        kittyRepository.save(kitty);
         return kitty.asDto();
     }
 
     public void makeFriends(int kittyId1, int kittyId2) {
-        if (kittyDao.getById(kittyId1) == null) {
+        if (!kittyRepository.existsById(kittyId1)) {
             throw KittyServiceException.noSuchKitty(kittyId1);
         }
-        if (kittyDao.getById(kittyId2) == null) {
+        if (!kittyRepository.existsById(kittyId2)) {
             throw KittyServiceException.noSuchKitty(kittyId2);
         }
-        Kitty kitty1 = kittyDao.getById(kittyId1);
-        Kitty kitty2 = kittyDao.getById(kittyId2);
+
+        Kitty kitty1 = kittyRepository.findById(kittyId1).orElseThrow();
+        Kitty kitty2 = kittyRepository.findById(kittyId2).orElseThrow();
         kitty1.addFriend(kitty2);
         kitty2.addFriend(kitty1);
-        kittyDao.update(kitty1);
+        kittyRepository.save(kitty1);
     }
 
     public void unfriendKitties(int kittyId1, int kittyId2) {
-        if (kittyDao.getById(kittyId1) == null) {
+        if (!kittyRepository.existsById(kittyId1)) {
             throw KittyServiceException.noSuchKitty(kittyId1);
         }
-        if (kittyDao.getById(kittyId2) == null) {
+        if (!kittyRepository.existsById(kittyId2)) {
             throw KittyServiceException.noSuchKitty(kittyId2);
         }
-        Kitty kitty1 = kittyDao.getById(kittyId1);
-        Kitty kitty2 = kittyDao.getById(kittyId2);
+        Kitty kitty1 = kittyRepository.findById(kittyId1).orElseThrow();
+        Kitty kitty2 = kittyRepository.findById(kittyId2).orElseThrow();
         kitty1.unfriend(kitty2);
+        kittyRepository.save(kitty1);
         kitty2.unfriend(kitty1);
-        kittyDao.update(kitty1);
+        kittyRepository.save(kitty2);
     }
 
     public KittyDto getKittyById(int id) {
-        if (kittyDao.getById(id) == null) {
+        if (!kittyRepository.existsById(id)) {
             throw KittyServiceException.noSuchKitty(id);
         }
-        return kittyDao.getById(id).asDto();
+        return kittyRepository.getReferenceById(id).asDto();
     }
 
     public List<KittyDto> findAllKitties() {
         List<KittyDto> kitties = new ArrayList<>();
-        for (Kitty kitty : kittyDao.getAll()) {
+        for (Kitty kitty : kittyRepository.findAll()) {
             kitties.add(kitty.asDto());
         }
         return kitties;
     }
 
     public List<KittyDto> findAllFriends(int id) {
-        if (kittyDao.getById(id) == null) {
+        if (!kittyRepository.existsById(id)) {
             throw KittyServiceException.noSuchKitty(id);
         }
         List<KittyDto> friends = new ArrayList<>();
-        for (Kitty friend : kittyDao.getAllFriends(id)) {
+        for (Kitty friend : kittyRepository.getReferenceById(id).getFriends()) {
             friends.add(friend.asDto());
         }
         return friends;
     }
 
     public void removeKitty(int id) {
-        if (kittyDao.getById(id) == null) {
+        if (!kittyRepository.existsById(id)) {
             throw KittyServiceException.noSuchKitty(id);
         }
-        for (Kitty k : kittyDao.getAllFriends(id)) {
-            k.getFriends().remove(kittyDao.getById(id));
+        Kitty kitty = kittyRepository.findById(id).orElseThrow();
+        for (Kitty k : kitty.getFriends()) {
+            k.getFriends().remove(kitty);
+            kittyRepository.save(k);
         }
-        kittyDao.getById(id).getOwner().removeKitty(kittyDao.getById(id));
-        kittyDao.remove(kittyDao.getById(id));
+        kitty.getFriends().clear();
+        kittyRepository.findById(id).orElseThrow().getOwner().removeKitty(kitty);
+        kittyRepository.save(kitty);
+        kittyRepository.deleteById(id);
     }
 
     public List<KittyDto> findKittiesByBreed(String breedName) {
         Breed breed = Breed.valueOf(breedName);
         List<KittyDto> kitties = new ArrayList<>();
-        for (Kitty kitty : kittyDao.getByBreed(breed)) {
-            kitties.add(kitty.asDto());
+        for (Kitty kitty : kittyRepository.findAll()) {
+            if (kitty.getBreed().equals(breed)) {
+                kitties.add(kitty.asDto());
+            }
         }
         return kitties;
     }
@@ -127,8 +139,23 @@ public class KittyServiceImpl implements KittyService {
     public List<KittyDto> findKittiesByColour(String colourName) {
         Colour colour = Colour.valueOf(colourName);
         List<KittyDto> kitties = new ArrayList<>();
-        for (Kitty kitty : kittyDao.getByColour(colour)) {
-            kitties.add(kitty.asDto());
+        for (Kitty kitty : kittyRepository.findAll()) {
+            if (kitty.getColour().equals(colour)) {
+                kitties.add(kitty.asDto());
+            }
+        }
+        return kitties;
+    }
+
+    @Override
+    public List<KittyDto> findKittiesByColourAndBreed(String colourName, String breedName) {
+        Colour colour = Colour.valueOf(colourName);
+        Breed breed = Breed.valueOf(breedName);
+        List<KittyDto> kitties = new ArrayList<>();
+        for (Kitty kitty : kittyRepository.findAll()) {
+            if (kitty.getColour().equals(colour) && kitty.getBreed().equals(breed)) {
+                kitties.add(kitty.asDto());
+            }
         }
         return kitties;
     }
