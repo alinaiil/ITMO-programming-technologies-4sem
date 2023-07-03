@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+    "-//Hibernate/Hibernate Configuration DTD//EN"
+    "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+  <session-factory>
+    <property name="hibernate.hbm2ddl.auto">create</property>
+    <property name="connection.url">jdbc:postgresql://localhost:5432/postgres</property>
+    <property name="connection.driver_class">org.postgresql.Driver</property>
+    <property name="connection.username">postgres</property>
+    <property name="connection.password">513545a</property>
+    <property name="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</property>
+    <property name="show_sql">true</property>
+    <property name="format_sql">true</property>
+    <mapping class="kz.alinaiil.kotiki.data.models.Owner"/>
+    <mapping class="kz.alinaiil.kotiki.data.models.Kitty"/>
+  </session-factory>
+</hibernate-configuration>
