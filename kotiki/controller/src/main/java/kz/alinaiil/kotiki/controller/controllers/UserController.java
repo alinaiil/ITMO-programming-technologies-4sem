@@ -1,9 +1,7 @@
 package kz.alinaiil.kotiki.controller.controllers;
 
 import jakarta.validation.Valid;
-import kz.alinaiil.kotiki.controller.creators.KittyCreateDto;
 import kz.alinaiil.kotiki.controller.creators.UserCreateDto;
-import kz.alinaiil.kotiki.service.dto.KittyDto;
 import kz.alinaiil.kotiki.service.dto.UserDto;
 import kz.alinaiil.kotiki.service.services.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;

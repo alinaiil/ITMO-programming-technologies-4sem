@@ -1,6 +1,6 @@
 package kz.alinaiil.kotiki.service.exceptions;
 
-public class UserServiceException extends KittiesException {
+public class UserServiceException extends RuntimeException {
     private UserServiceException(String message) {
         super(message);
     }
